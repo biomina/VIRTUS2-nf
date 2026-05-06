@@ -10,6 +10,9 @@ test/results*/
 .nextflow.log*
 *.log
 
+# Singularity SIF files (large binaries; build with bin/build_singularity_sifs.sh)
+singularity/*.sif
+
 # Temporary files
 /tmp/
 
