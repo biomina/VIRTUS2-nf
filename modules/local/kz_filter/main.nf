@@ -7,8 +7,8 @@ process KZ_FILTER {
 
     conda 'eclarke::komplexity=0.3.6'
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'docker://virtus2-kz:local' :
-        'virtus2-kz:local' }"
+        'docker://quay.io/andvon/komplexity:0.3.6' :
+        'quay.io/andvon/komplexity:0.3.6' }"
 
     input:
     tuple val(meta), path(fastq)

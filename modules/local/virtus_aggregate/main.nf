@@ -6,8 +6,8 @@ process VIRTUS_AGGREGATE {
 
     conda 'conda-forge::pandas conda-forge::scipy conda-forge::seaborn conda-forge::matplotlib'
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'docker://virtus2-aggregate:local' :
-        'virtus2-aggregate:local' }"
+        'docker://community.wave.seqera.io/library/matplotlib_numpy_pandas_python_pruned:e8acf970170a6bce' :
+        'community.wave.seqera.io/library/matplotlib_numpy_pandas_python_pruned:e8acf970170a6bce' }"
 
     input:
     path tsvs          // collected list of per-sample *.tsv files
