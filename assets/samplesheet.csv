@@ -1,0 +1,4 @@
+sample,fastq1,fastq2,group
+sample_A_PE,/path/to/sample_A_R1.fastq.gz,/path/to/sample_A_R2.fastq.gz,control
+sample_B_PE,/path/to/sample_B_R1.fastq.gz,/path/to/sample_B_R2.fastq.gz,treatment
+sample_C_SE,/path/to/sample_C.fastq.gz,,control

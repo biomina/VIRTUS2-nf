@@ -1,0 +1,50 @@
+{
+  "name": "VIRTUS2-nf",
+  "homePage": "",
+  "repos": {
+    "https://github.com/nf-core/modules.git": {
+      "modules": {
+        "nf-core": {
+          "fastp": {
+            "branch": "master",
+            "git_sha": "2c70c1c1951aaf884d2e8d8d9c871db79f7b35aa",
+            "installed_by": ["modules"]
+          },
+          "samtools/coverage": {
+            "branch": "master",
+            "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+            "installed_by": ["modules"]
+          },
+          "samtools/fastq": {
+            "branch": "master",
+            "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+            "installed_by": ["modules"]
+          },
+          "samtools/index": {
+            "branch": "master",
+            "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773",
+            "installed_by": ["modules"]
+          },
+          "star/align": {
+            "branch": "master",
+            "git_sha": "cd22a76c78b09f7837a5a75642774a4bf48c92ba",
+            "installed_by": ["modules"]
+          },
+          "star/genomegenerate": {
+            "branch": "master",
+            "git_sha": "cd22a76c78b09f7837a5a75642774a4bf48c92ba",
+            "installed_by": ["modules"]
+          },
+          "wget": {
+            "branch": "master",
+            "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+            "installed_by": ["modules"]
+          }
+        }
+      },
+      "subworkflows": {
+        "nf-core": {}
+      }
+    }
+  }
+}

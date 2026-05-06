@@ -1,0 +1,23 @@
+# Nextflow work directory
+work/
+
+# Results directories
+results*/
+test/results*/
+
+# Nextflow logs and cache
+.nextflow/
+.nextflow.log*
+*.log
+
+# Temporary files
+/tmp/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+Thumbs.db

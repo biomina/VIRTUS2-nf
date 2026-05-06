@@ -1,0 +1,3 @@
+sample,fastq1,fastq2,group
+ERR3240275,/home/andrea/nf_core_virtus/nf-core-virtus/assets/ERR3240275/ERR3240275_1.fastq.gz,/home/andrea/nf_core_virtus/nf-core-virtus/assets/ERR3240275/ERR3240275_2.fastq.gz,test
+SRR8315715,/home/andrea/nf_core_virtus/nf-core-virtus/assets/SRR8315715/SRR8315715_2.fastq.gz,,test
