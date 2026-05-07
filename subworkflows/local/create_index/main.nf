@@ -19,24 +19,22 @@ workflow CREATE_INDEX {
     ch_versions = Channel.empty()
 
     // Download reference FASTAs
-    WGET_HUMAN ( url_human, 'human_genome.fa.gz' )
-    WGET_VIRUS ( url_virus, 'viruses.fa' )
+    WGET_HUMAN ( Channel.value([[id: 'human_genome'], url_human, 'fa.gz']) )
+    WGET_VIRUS ( Channel.value([[id: 'viruses'],      url_virus, 'fasta']) )
     ch_versions = ch_versions.mix(WGET_HUMAN.out.versions)
     ch_versions = ch_versions.mix(WGET_VIRUS.out.versions)
 
     // Build human STAR index (with GTF if available, otherwise omit)
     STAR_GENOMEGENERATE_HUMAN (
-        WGET_HUMAN.out.file.map { f -> [ [id: 'human'], f ] },
-        []   // no GTF — purely genomic alignment for unmapped read extraction
+        WGET_HUMAN.out.outfile.map { meta, f -> [ [id: 'human'], f ] },
+        Channel.value([[id:'no_gtf'], []])   // no GTF — purely genomic alignment for unmapped read extraction
     )
-    ch_versions = ch_versions.mix(STAR_GENOMEGENERATE_HUMAN.out.versions)
 
     // Build virus STAR index (small genome → ext.args sets genomeSAindexNbases 12)
     STAR_GENOMEGENERATE_VIRUS (
-        WGET_VIRUS.out.file.map { f -> [ [id: 'virus'], f ] },
-        []
+        WGET_VIRUS.out.outfile.map { meta, f -> [ [id: 'virus'], f ] },
+        Channel.value([[id:'no_gtf'], []])
     )
-    ch_versions = ch_versions.mix(STAR_GENOMEGENERATE_VIRUS.out.versions)
 
     emit:
     human_index = STAR_GENOMEGENERATE_HUMAN.out.index.map { meta, idx -> idx }

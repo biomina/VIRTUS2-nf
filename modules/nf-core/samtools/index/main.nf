@@ -1,19 +1,18 @@
 process SAMTOOLS_INDEX {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_low'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/samtools:1.21--h50ea8bc_0' :
-        'quay.io/biocontainers/samtools:1.21--h50ea8bc_0' }"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/8c/8c5d2818c8b9f58e1fba77ce219fdaf32087ae53e857c4a496402978af26e78c/data'
+        : 'community.wave.seqera.io/library/htslib_samtools:1.23.1--5b6bb4ede7e612e5'}"
 
     input:
     tuple val(meta), path(input)
 
     output:
-    tuple val(meta), path('*.bai'),  emit: bai, optional: true
-    tuple val(meta), path('*.csi'),  emit: csi, optional: true
-    path 'versions.yml',             emit: versions
+    tuple val(meta), path("*.{bai,csi,crai}"), emit: index
+    tuple val("${task.process}"), val('samtools'), eval("samtools version | sed '1!d;s/.* //'"), emit: versions_samtools, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -21,23 +20,19 @@ process SAMTOOLS_INDEX {
     script:
     def args = task.ext.args ?: ''
     """
-    samtools index \\
+    samtools \\
+        index \\
         -@ ${task.cpus} \\
         ${args} \\
         ${input}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(samtools --version | head -1 | sed 's/samtools //')
-    END_VERSIONS
     """
+
     stub:
+    def args = task.ext.args ?: ''
+    def extension = file(input).getExtension() == 'cram'
+        ? "crai"
+        : args.contains("-c") ? "csi" : "bai"
     """
-    touch ${input}.bai
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: stub
-    END_VERSIONS
+    touch ${input}.${extension}
     """
-
 }

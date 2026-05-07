@@ -1,50 +1,93 @@
 process STAR_GENOMEGENERATE {
-    tag "$fasta.name"
+    tag "$fasta"
     label 'process_high'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/star:2.7.11b--h43eeafb_0' :
-        'quay.io/biocontainers/star:2.7.11b--h43eeafb_0' }"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/26/268b4c9c6cbf8fa6606c9b7fd4fafce18bf2c931d1a809a0ce51b105ec06c89d/data' :
+        'community.wave.seqera.io/library/htslib_samtools_star_gawk:ae438e9a604351a4' }"
 
     input:
     tuple val(meta), path(fasta)
-    // gtf may be an empty list [] for virus index — handled below
-    path gtf
+    tuple val(meta2), path(gtf)
 
     output:
-    tuple val(meta), path('star'), emit: index
-    path 'versions.yml',           emit: versions
+    tuple val(meta), path("star")  , emit: index
+    tuple val("${task.process}"), val('star'), eval('STAR --version | sed -e "s/STAR_//g"'), emit: versions_star, topic: versions
+    tuple val("${task.process}"), val('samtools'), eval("samtools --version | sed -n '1s/samtools //p'"), emit: versions_samtools, topic: versions
+    tuple val("${task.process}"), val('gawk'), eval("gawk --version | sed -n '1{s/GNU Awk //;s/,.*//;p}'"), emit: versions_gawk, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
-    def args     = task.ext.args ?: ''
-    def gtf_cmd  = gtf ? "--sjdbGTFfile ${gtf}" : ''
-    """
-    mkdir star
-    STAR \\
-        --runMode genomeGenerate \\
-        --genomeDir star \\
-        --genomeFastaFiles ${fasta} \\
-        --runThreadN ${task.cpus} \\
-        ${gtf_cmd} \\
-        ${args}
+    def args        = task.ext.args ?: ''
+    def args_list   = args.tokenize()
+    def memory      = task.memory ? "--limitGenomeGenerateRAM ${task.memory.toBytes() - 100000000}" : ''
+    def include_gtf = gtf ? "--sjdbGTFfile $gtf" : ''
+    if (args_list.contains('--genomeSAindexNbases')) {
+        """
+        mkdir star
+        STAR \\
+            --runMode genomeGenerate \\
+            --genomeDir star/ \\
+            --genomeFastaFiles $fasta \\
+            $include_gtf \\
+            --runThreadN $task.cpus \\
+            $memory \\
+            $args
+        """
+    } else {
+        """
+        samtools faidx $fasta
+        NUM_BASES=`gawk '{sum = sum + \$2}END{if ((log(sum)/log(2))/2 - 1 > 14) {printf "%.0f", 14} else {printf "%.0f", (log(sum)/log(2))/2 - 1}}' ${fasta}.fai`
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        star: \$(STAR --version | sed -e "s/STAR_//g")
-    END_VERSIONS
-    """
+        mkdir star
+        STAR \\
+            --runMode genomeGenerate \\
+            --genomeDir star/ \\
+            --genomeFastaFiles $fasta \\
+            $include_gtf \\
+            --runThreadN $task.cpus \\
+            --genomeSAindexNbases \$NUM_BASES \\
+            $memory \\
+            $args
+        """
+    }
+
     stub:
-    """
-    mkdir -p star
-    touch star/Genome
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        star: stub
-    END_VERSIONS
-    """
-
+    if (gtf) {
+        """
+        mkdir star
+        touch star/Genome
+        touch star/Log.out
+        touch star/SA
+        touch star/SAindex
+        touch star/chrLength.txt
+        touch star/chrName.txt
+        touch star/chrNameLength.txt
+        touch star/chrStart.txt
+        touch star/exonGeTrInfo.tab
+        touch star/exonInfo.tab
+        touch star/geneInfo.tab
+        touch star/genomeParameters.txt
+        touch star/sjdbInfo.txt
+        touch star/sjdbList.fromGTF.out.tab
+        touch star/sjdbList.out.tab
+        touch star/transcriptInfo.tab
+        """
+    } else {
+        """
+        mkdir star
+        touch star/Genome
+        touch star/Log.out
+        touch star/SA
+        touch star/SAindex
+        touch star/chrLength.txt
+        touch star/chrName.txt
+        touch star/chrNameLength.txt
+        touch star/chrStart.txt
+        touch star/genomeParameters.txt
+        """
+    }
 }

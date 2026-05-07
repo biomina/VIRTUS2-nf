@@ -75,16 +75,16 @@ workflow {
     } else if (params.fasta_human) {
         STAR_GENOMEGENERATE_HUMAN (
             Channel.value([ [id: 'human'], file(params.fasta_human, checkIfExists: true) ]),
-            []
+            Channel.value([[id:'no_gtf'], []])
         )
         ch_human_index = STAR_GENOMEGENERATE_HUMAN.out.index.map { meta, idx -> idx }.first()
     } else {
         // Download human genome FASTA, decompress (STAR can't read .fa.gz), then build index
-        WGET_HUMAN ( params.url_fasta_human, 'human_genome.fa.gz' )
-        GUNZIP_HUMAN ( WGET_HUMAN.out.file )
+        WGET_HUMAN ( Channel.value([[id: 'human_genome'], params.url_fasta_human, 'fa.gz']) )
+        GUNZIP_HUMAN ( WGET_HUMAN.out.outfile.map { meta, f -> f } )
         STAR_GENOMEGENERATE_HUMAN (
             GUNZIP_HUMAN.out.gunzip.map { f -> [ [id: 'human'], f ] },
-            []
+            Channel.value([[id:'no_gtf'], []])
         )
         ch_human_index = STAR_GENOMEGENERATE_HUMAN.out.index.map { meta, idx -> idx }.first()
     }
@@ -95,15 +95,15 @@ workflow {
     } else if (params.fasta_virus) {
         STAR_GENOMEGENERATE_VIRUS (
             Channel.value([ [id: 'virus'], file(params.fasta_virus, checkIfExists: true) ]),
-            []
+            Channel.value([[id:'no_gtf'], []])
         )
         ch_virus_index = STAR_GENOMEGENERATE_VIRUS.out.index.map { meta, idx -> idx }.first()
     } else {
         // Download virus FASTA and build index
-        WGET_VIRUS ( params.url_fasta_virus, 'viruses.fasta' )
+        WGET_VIRUS ( Channel.value([[id: 'viruses'], params.url_fasta_virus, 'fasta']) )
         STAR_GENOMEGENERATE_VIRUS (
-            WGET_VIRUS.out.file.map { f -> [ [id: 'virus'], f ] },
-            []
+            WGET_VIRUS.out.outfile.map { meta, f -> [ [id: 'virus'], f ] },
+            Channel.value([[id:'no_gtf'], []])
         )
         ch_virus_index = STAR_GENOMEGENERATE_VIRUS.out.index.map { meta, idx -> idx }.first()
     }

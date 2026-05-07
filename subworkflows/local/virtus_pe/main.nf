@@ -28,18 +28,18 @@ workflow VIRTUS_PE {
     ch_versions = Channel.empty()
 
     // Step 1 — QC & trimming
-    FASTP ( ch_reads )
-    ch_versions = ch_versions.mix(FASTP.out.versions.first())
+    FASTP ( ch_reads, [], false, false, false )
 
     // Step 2 — Align to human genome (keep unmapped reads in BAM)
     STAR_ALIGN_HUMAN (
         FASTP.out.reads,
-        ch_human_index.map { idx -> [ [:], idx ] }
+        ch_human_index.map { idx -> [ [:], idx ] },
+        Channel.value([[id:'no_gtf'], []]),
+        true
     )
-    ch_versions = ch_versions.mix(STAR_ALIGN_HUMAN.out.versions.first())
 
     // Step 3 — Extract unmapped reads (remove multi-mappers via custom script)
-    SAMTOOLS_VIEW ( STAR_ALIGN_HUMAN.out.bam_sorted )
+    SAMTOOLS_VIEW ( STAR_ALIGN_HUMAN.out.bam_sorted_aligned )
     ch_versions = ch_versions.mix(SAMTOOLS_VIEW.out.versions.first())
 
     // Step 4 — Convert unmapped BAM → paired FASTQ
@@ -91,23 +91,25 @@ workflow VIRTUS_PE {
     // Step 8 — Align to viral reference
     STAR_ALIGN_VIRUS (
         FASTQ_PAIR.out.reads,
-        ch_virus_index.map { idx -> [ [:], idx ] }
+        ch_virus_index.map { idx -> [ [:], idx ] },
+        Channel.value([[id:'no_gtf'], []]),
+        true
     )
-    ch_versions = ch_versions.mix(STAR_ALIGN_VIRUS.out.versions.first())
 
     // Step 9 — Remove poly-X reads from viral BAM
-    BAM_FILTER_POLYX ( STAR_ALIGN_VIRUS.out.bam_sorted )
+    BAM_FILTER_POLYX ( STAR_ALIGN_VIRUS.out.bam_sorted_aligned )
     ch_versions = ch_versions.mix(BAM_FILTER_POLYX.out.versions.first())
 
     // Step 10 — Index filtered viral BAM
     SAMTOOLS_INDEX ( BAM_FILTER_POLYX.out.bam )
-    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
 
     // Step 11 — Compute per-virus coverage
     ch_bam_bai = BAM_FILTER_POLYX.out.bam
-        .join( SAMTOOLS_INDEX.out.bai )
-    SAMTOOLS_COVERAGE ( ch_bam_bai )
-    ch_versions = ch_versions.mix(SAMTOOLS_COVERAGE.out.versions.first())
+        .join( SAMTOOLS_INDEX.out.index )
+    SAMTOOLS_COVERAGE (
+        ch_bam_bai,
+        Channel.value([[id:'no_fasta'], [], []])
+    )
 
     // Step 12 — Generate per-sample VIRTUS summary TSV
     // Join log_final + coverage by meta so samples are never mismatched
