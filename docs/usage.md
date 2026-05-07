@@ -150,6 +150,10 @@ nextflow run main.nf -profile docker -resume --input samplesheet.csv --outdir re
 
 ## Resource requirements
 
-- **RAM**: ≥50 GB recommended (STAR human genome index requires ~32 GB)
+| Scenario | RAM |
+|---|---|
+| Full run (index build + alignment) | ≥40 GB — STAR genome generation for GRCh38 peaks at ~40 GB |
+| Pre-built indexes (`--genomeDir_human` / `--genomeDir_virus`) | ≥32 GB — genome build step is skipped; STAR alignment loads the prebuilt human index into shared memory (~28 GB) |
+
 - **CPU**: 8–12 cores recommended for STAR alignment steps
 - **Disk**: ~30 GB for STAR indexes; additional space per sample for intermediate BAMs
