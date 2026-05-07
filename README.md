@@ -36,7 +36,7 @@ run.
 | BAM → FASTQ (PE) | bedtools bamtofastq 2.29.2 | samtools fastq (default); bedtools available via `--bam_to_fastq_tool bedtools` |
 | STAR `.bai` index | not produced | added (`SAMTOOLS_INDEX` step) |
 | Multi-sample runs | separate CWL invocations | native parallelism via Nextflow channels |
-| Aggregate summary | separate `virtus-recount.cwl` | integrated `VIRTUS_AGGREGATE` step |
+| Aggregate summary | separate Python wrapper | integrated `VIRTUS_AGGREGATE` step |
 | Execution tracing | none | HTML timeline, report, and trace file in `pipeline_info/` |
 | Reproducibility mode | n/a | `--tool_versions legacy` reproduces original results exactly |
 
