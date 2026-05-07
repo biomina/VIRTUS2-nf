@@ -94,8 +94,8 @@ byte-for-byte.
 | `--genomeDir_virus` | `null` | Path to pre-built virus STAR index directory. If not set, the index is built from `--fasta_virus` or downloaded. |
 | `--fasta_human` | `null` | Local human genome FASTA (uncompressed). Used to build the STAR index when `--genomeDir_human` is absent. |
 | `--fasta_virus` | `null` | Local virus FASTA. Used to build the STAR index when `--genomeDir_virus` is absent. |
-| `--url_fasta_human` | GENCODE GRCh38 r38 | Remote URL for the human genome FASTA (`.fa.gz`). Used only when neither `--genomeDir_human` nor `--fasta_human` is provided. |
-| `--url_fasta_virus` | VIRTUS2 GitHub | Remote URL for the virus FASTA. Used only when neither `--genomeDir_virus` nor `--fasta_virus` is provided. |
+| `--url_fasta_human` | `https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/GRCh38.p13.genome.fa.gz` (GENCODE GRCh38 r38) | Remote URL for the human genome FASTA (`.fa.gz`). Used only when neither `--genomeDir_human` nor `--fasta_human` is provided. |
+| `--url_fasta_virus` | `https://raw.githubusercontent.com/yyoshiaki/VIRTUS2/master/data/viruses.fasta` (VIRTUS2 GitHub) | Remote URL for the virus FASTA. Used only when neither `--genomeDir_virus` nor `--fasta_virus` is provided. |
 
 ### Tool version profile
 
