@@ -84,7 +84,7 @@ byte-for-byte.
 | Parameter | Default | Description |
 |---|---|---|
 | `--input` | `null` | **Required.** Path to samplesheet CSV |
-| `--outdir` | `results` | Output directory |
+| `--outdir` | `results` | **Required.** Output directory |
 
 ### Reference genomes
 
