@@ -13,6 +13,11 @@ test/results*/
 # Singularity SIF files (large binaries; build with bin/build_singularity_sifs.sh)
 singularity/*.sif
 
+# Test FASTQ files (large; not tracked in git)
+test/data/ERR3240275/
+test/data/SRR8315715/
+test/data/samplesheet_nogroup.csv
+
 # Temporary files
 /tmp/
 
@@ -24,4 +29,3 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
-test/data/samplesheet_nogroup.csv
