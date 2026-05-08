@@ -26,7 +26,10 @@ workflow VIRTUS_SE {
     ch_versions = Channel.empty()
 
     // Step 1 — QC & trimming
-    FASTP ( ch_reads, [], false, false, false )
+    FASTP (
+        ch_reads.map { meta, reads -> [ meta, reads, [] ] },
+        false, false, false
+    )
 
     // Step 2 — Align to human genome
     STAR_ALIGN_HUMAN (

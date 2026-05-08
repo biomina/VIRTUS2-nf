@@ -4,6 +4,7 @@
 //
 
 include { FASTP                  } from '../../../modules/nf-core/fastp/main'
+include { FASTP_LEGACY           } from '../../../modules/local/fastp_legacy/main'
 include { STAR_ALIGN as STAR_ALIGN_HUMAN } from '../../../modules/nf-core/star/align/main'
 include { STAR_ALIGN as STAR_ALIGN_VIRUS } from '../../../modules/nf-core/star/align/main'
 include { SAMTOOLS_VIEW          } from '../../../modules/local/samtools/view/main'
@@ -28,11 +29,30 @@ workflow VIRTUS_PE {
     ch_versions = Channel.empty()
 
     // Step 1 — QC & trimming
-    FASTP ( ch_reads, [], false, false, false )
+    // FASTP_LEGACY (legacy mode): fastp 0.20.0 without --detect_adapter_for_pe, matching CWL VIRTUS2
+    // FASTP        (latest mode):  fastp latest with nf-core defaults (--detect_adapter_for_pe hardcoded)
+    ch_fastp_reads = Channel.empty()
+    if (params.tool_versions == 'legacy') {
+        FASTP_LEGACY (
+            ch_reads.map { meta, reads -> [ meta, reads, [] ] },
+            false, false, false
+        )
+        ch_fastp_reads = FASTP_LEGACY.out.reads
+        ch_versions = ch_versions.mix(FASTP_LEGACY.out.versions.first())
+    } else {
+        FASTP (
+            ch_reads.map { meta, reads -> [ meta, reads, [] ] },
+            false, false, false
+        )
+        ch_fastp_reads = FASTP.out.reads
+        ch_versions = ch_versions.mix(
+            FASTP.out.versions_fastp.map { process, tool, ver -> [ process, ver ] }
+        )
+    }
 
     // Step 2 — Align to human genome (keep unmapped reads in BAM)
     STAR_ALIGN_HUMAN (
-        FASTP.out.reads,
+        ch_fastp_reads,
         ch_human_index.map { idx -> [ [:], idx ] },
         Channel.value([[id:'no_gtf'], []]),
         true
@@ -128,6 +148,6 @@ workflow VIRTUS_PE {
     log_final    = STAR_ALIGN_HUMAN.out.log_final
     bam_virus    = BAM_FILTER_POLYX.out.bam
     coverage     = SAMTOOLS_COVERAGE.out.coverage
-    fastp_json   = FASTP.out.json
+    fastp_json   = params.tool_versions == 'legacy' ? FASTP_LEGACY.out.json : FASTP.out.json
     versions     = ch_versions
 }
