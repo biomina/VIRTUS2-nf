@@ -1,0 +1,54 @@
+name: fastq_pair
+description: |
+  Re-pair paired-end FASTQ files using fastq_pair after independent
+  per-read filtering steps that may have discarded reads asymmetrically.
+  Output paired files are gzip-compressed.
+keywords:
+  - fastq
+  - paired-end
+  - re-pairing
+  - fastq_pair
+tools:
+  - fastq_pair:
+      description: |
+        Rewrite paired-end FASTQ files to make sure that all reads have
+        a mate and to separate out singletons.
+      homepage: https://github.com/linsalrob/fastq-pair
+      documentation: https://github.com/linsalrob/fastq-pair
+      licence: ["MIT"]
+      identifier: ""
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information.
+          e.g. [ id:'test', single_end:false ]
+    - reads:
+        description: List of two paired FASTQ files [fq1, fq2].
+        pattern: "*.{fq,fastq,fq.gz,fastq.gz}"
+        ontologies:
+          - edam: http://edamontology.org/format_1930 # FASTQ
+
+output:
+  reads:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information.
+            e.g. [ id:'test', single_end:false ]
+      - "*.paired.fq.gz":
+          description: Gzip-compressed re-paired FASTQ files [fq1, fq2].
+          pattern: "*.paired.fq.gz"
+          ontologies:
+            - edam: http://edamontology.org/format_1930 # FASTQ
+            - edam: http://edamontology.org/format_3989 # GZIP format
+  versions:
+    - versions:
+        type: channel
+        description: Channel emitting software version information via the Nextflow `versions` topic.
+
+authors:
+  - "@biomina"
+maintainers:
+  - "@biomina"

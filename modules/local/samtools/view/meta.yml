@@ -1,0 +1,52 @@
+name: samtools_view
+description: |
+  Extract unmapped reads from a human-aligned BAM file, removing multi-mappers
+  and secondary alignments using a custom script (samtools_view_removemulti.sh)
+  bundled in the yyasumizu/bam_filter_polyx Docker image. The output is an
+  unmapped BAM ready for conversion to FASTQ for viral re-alignment.
+keywords:
+  - bam
+  - samtools
+  - unmapped
+  - filter
+  - multi-mapper
+tools:
+  - samtools:
+      description: Tools for manipulating alignments in the SAM format.
+      homepage: https://www.htslib.org/
+      documentation: https://www.htslib.org/doc/samtools.html
+      doi: 10.1093/gigascience/giab008
+      licence: ["MIT"]
+      identifier: biotools:samtools
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information.
+          e.g. [ id:'test', single_end:false ]
+    - bam:
+        description: Input BAM file (human alignment, sorted).
+        pattern: "*.bam"
+        ontologies: []
+
+output:
+  bam:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information.
+            e.g. [ id:'test', single_end:false ]
+      - "*.unmapped.bam":
+          description: BAM file containing only unmapped reads with multi-mappers removed.
+          pattern: "*.unmapped.bam"
+          ontologies: []
+  versions:
+    - versions:
+        type: channel
+        description: Channel emitting software version information via the Nextflow `versions` topic.
+
+authors:
+  - "@biomina"
+maintainers:
+  - "@biomina"

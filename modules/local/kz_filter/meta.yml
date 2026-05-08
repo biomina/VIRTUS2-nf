@@ -1,0 +1,55 @@
+name: kz_filter
+description: |
+  Filter low-complexity reads using the komplexity (kz) tool.
+  Reads with a complexity score below the configured threshold are discarded.
+  Called once per FASTQ file; for paired-end data the two read files are
+  processed independently and then re-paired by FASTQ_PAIR.
+keywords:
+  - fastq
+  - low-complexity
+  - filter
+  - komplexity
+tools:
+  - komplexity:
+      description: |
+        A fast tool for filtering low-complexity sequences from FASTQ files
+        using a k-mer complexity metric.
+      homepage: https://github.com/eclarke/komplexity
+      documentation: https://github.com/eclarke/komplexity
+      licence: ["MIT"]
+      identifier: ""
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information.
+          e.g. [ id:'test', single_end:false ]
+    - fastq:
+        description: Input FASTQ file (may be gzip-compressed).
+        pattern: "*.{fq,fastq,fq.gz,fastq.gz}"
+        ontologies:
+          - edam: http://edamontology.org/format_1930 # FASTQ
+
+output:
+  reads:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information.
+            e.g. [ id:'test', single_end:false ]
+      - "*.kz.fq.gz":
+          description: Complexity-filtered, gzip-compressed FASTQ file.
+          pattern: "*.kz.fq.gz"
+          ontologies:
+            - edam: http://edamontology.org/format_1930 # FASTQ
+            - edam: http://edamontology.org/format_3989 # GZIP format
+  versions:
+    - versions:
+        type: channel
+        description: Channel emitting software version information via the Nextflow `versions` topic.
+
+authors:
+  - "@biomina"
+maintainers:
+  - "@biomina"

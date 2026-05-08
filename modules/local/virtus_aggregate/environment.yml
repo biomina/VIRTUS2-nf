@@ -1,0 +1,14 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  # renovate: datasource=conda depName=conda-forge/pandas
+  - conda-forge::pandas
+  # renovate: datasource=conda depName=conda-forge/scipy
+  - conda-forge::scipy
+  # renovate: datasource=conda depName=conda-forge/seaborn
+  - conda-forge::seaborn
+  # renovate: datasource=conda depName=conda-forge/matplotlib
+  - conda-forge::matplotlib

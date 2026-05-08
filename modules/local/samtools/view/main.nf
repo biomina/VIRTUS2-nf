@@ -5,8 +5,8 @@ process SAMTOOLS_VIEW {
     tag "$meta.id"
     label 'process_medium'
 
-    conda 'bioconda::samtools=1.21'
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    conda "${moduleDir}/environment.yml"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'docker://yyasumizu/bam_filter_polyx:1.3' :
         'yyasumizu/bam_filter_polyx:1.3' }"
 
@@ -14,8 +14,8 @@ process SAMTOOLS_VIEW {
     tuple val(meta), path(bam)
 
     output:
-    tuple val(meta), path('*.unmapped.bam'), emit: bam
-    path 'versions.yml',                    emit: versions
+    tuple val(meta), path('*.unmapped.bam'),                                                                                    emit: bam
+    tuple val("${task.process}"), val('samtools'), eval("samtools version | sed '1!d;s/.* //'"), emit: versions_samtools, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -24,20 +24,11 @@ process SAMTOOLS_VIEW {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     samtools_view_removemulti.sh ${task.cpus} 4 ${bam} > ${prefix}.unmapped.bam
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(samtools --version | head -1 | sed 's/samtools //')
-    END_VERSIONS
     """
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.unmapped.bam
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: stub
-    END_VERSIONS
     """
 
 }

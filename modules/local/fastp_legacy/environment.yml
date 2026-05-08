@@ -1,0 +1,10 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json
+# Note: this module hardcodes the Docker container quay.io/biocontainers/fastp:0.20.0--hdbcaa40_0
+# to ensure CWL-equivalent legacy behaviour. The conda pin below matches that version.
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  # renovate: datasource=conda depName=bioconda/fastp
+  - bioconda::fastp=0.20.0

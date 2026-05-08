@@ -41,14 +41,18 @@ workflow VIRTUS_SE {
 
     // Step 3 — Extract unmapped reads
     SAMTOOLS_VIEW ( STAR_ALIGN_HUMAN.out.bam_sorted_aligned )
-    ch_versions = ch_versions.mix(SAMTOOLS_VIEW.out.versions.first())
+    ch_versions = ch_versions.mix(
+        SAMTOOLS_VIEW.out.versions_samtools.map { process, tool, ver -> [ process, ver ] }
+    )
 
     // Step 4 — Convert unmapped BAM → FASTQ
     // Branch on bam_to_fastq_tool param: 'bedtools' for exact CWL replication, 'samtools' (default) for modern approach
     ch_single_fq = Channel.empty()
     if (params.bam_to_fastq_tool == 'bedtools') {
         BEDTOOLS_BAMTOFASTQ ( SAMTOOLS_VIEW.out.bam )
-        ch_versions = ch_versions.mix(BEDTOOLS_BAMTOFASTQ.out.versions.first())
+        ch_versions = ch_versions.mix(
+            BEDTOOLS_BAMTOFASTQ.out.versions_bedtools.map { process, tool, ver -> [ process, ver ] }
+        )
         // bedtools emits [ meta, [fq] ] for SE; unwrap to single file
         ch_single_fq = BEDTOOLS_BAMTOFASTQ.out.reads.map { meta, reads ->
             [ meta, reads instanceof List ? reads[0] : reads ]
@@ -66,7 +70,9 @@ workflow VIRTUS_SE {
 
     // Step 5 — KZ complexity filter
     KZ_FILTER ( ch_single_fq )
-    ch_versions = ch_versions.mix(KZ_FILTER.out.versions.first())
+    ch_versions = ch_versions.mix(
+        KZ_FILTER.out.versions_komplexity.map { process, tool, ver -> [ process, ver ] }
+    )
 
     // Step 6 — Align to viral reference
     STAR_ALIGN_VIRUS (
@@ -78,7 +84,9 @@ workflow VIRTUS_SE {
 
     // Step 7 — Remove poly-X reads from viral BAM
     BAM_FILTER_POLYX ( STAR_ALIGN_VIRUS.out.bam_sorted_aligned )
-    ch_versions = ch_versions.mix(BAM_FILTER_POLYX.out.versions.first())
+    ch_versions = ch_versions.mix(
+        BAM_FILTER_POLYX.out.versions_samtools.map { process, tool, ver -> [ process, ver ] }
+    )
 
     // Step 8 — Index filtered viral BAM
     SAMTOOLS_INDEX ( BAM_FILTER_POLYX.out.bam )
@@ -100,7 +108,9 @@ workflow VIRTUS_SE {
         ch_log_cov.map { meta, log, cov -> [ meta, cov ] },
         'SE'
     )
-    ch_versions = ch_versions.mix(MK_SUMMARY_VIRUS_COUNT.out.versions.first())
+    ch_versions = ch_versions.mix(
+        MK_SUMMARY_VIRUS_COUNT.out.versions_python.map { process, tool, ver -> [ process, ver ] }
+    )
 
     emit:
     summary      = MK_SUMMARY_VIRUS_COUNT.out.output

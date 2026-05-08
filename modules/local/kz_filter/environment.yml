@@ -1,0 +1,11 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json
+# Note: komplexity is not available on the standard conda channels.
+# The module uses a custom Docker image (quay.io/andvon/komplexity:0.3.6).
+# The conda dependency below references the eclarke channel as a best-effort fallback.
+channels:
+  - eclarke
+  - conda-forge
+  - bioconda
+dependencies:
+  - eclarke::komplexity=0.3.6

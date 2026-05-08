@@ -1,0 +1,54 @@
+name: bedtools_bamtofastq
+description: |
+  Convert an unmapped BAM file to FASTQ format using bedtools bamtofastq.
+  Handles both single-end (one output file) and paired-end (two output files)
+  data via meta.single_end. Output files are gzip-compressed.
+keywords:
+  - bam
+  - fastq
+  - conversion
+  - bedtools
+tools:
+  - bedtools:
+      description: A powerful toolset for genome arithmetic.
+      homepage: https://bedtools.readthedocs.io/
+      documentation: https://bedtools.readthedocs.io/en/latest/content/tools/bamtofastq.html
+      doi: 10.1093/bioinformatics/btq033
+      licence: ["MIT"]
+      identifier: biotools:bedtools
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information.
+          e.g. [ id:'test', single_end:false ]
+    - bam:
+        description: Input unmapped BAM file.
+        pattern: "*.bam"
+        ontologies: []
+
+output:
+  reads:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information.
+            e.g. [ id:'test', single_end:false ]
+      - "*.fq.gz":
+          description: |
+            Gzip-compressed FASTQ file(s). One file for single-end,
+            two files (_1 and _2) for paired-end data.
+          pattern: "*.fq.gz"
+          ontologies:
+            - edam: http://edamontology.org/format_1930 # FASTQ
+            - edam: http://edamontology.org/format_3989 # GZIP format
+  versions:
+    - versions:
+        type: channel
+        description: Channel emitting software version information via the Nextflow `versions` topic.
+
+authors:
+  - "@biomina"
+maintainers:
+  - "@biomina"

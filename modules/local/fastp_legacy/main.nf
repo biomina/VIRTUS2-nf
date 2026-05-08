@@ -7,6 +7,7 @@ process FASTP_LEGACY {
     tag "$meta.id"
     label 'process_medium'
 
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/fastp:0.20.0--hdbcaa40_0' :
         'quay.io/biocontainers/fastp:0.20.0--hdbcaa40_0' }"
@@ -24,7 +25,7 @@ process FASTP_LEGACY {
     tuple val(meta), path('*.log')            , emit: log
     tuple val(meta), path('*.fail.fastq.gz')  , optional:true, emit: reads_fail
     tuple val(meta), path('*.merged.fastq.gz'), optional:true, emit: reads_merged
-    path 'versions.yml'                        , emit: versions
+    tuple val("${task.process}"), val('fastp'), eval('fastp --version 2>&1 | sed -e "s/fastp //g"'), emit: versions_fastp, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -52,10 +53,6 @@ process FASTP_LEGACY {
             2>| >(tee ${prefix}.fastp.log >&2) \\
         | gzip -c > ${prefix}.fastp.fastq.gz
 
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            fastp: \$(fastp --version 2>&1 | sed -e "s/fastp //g")
-        END_VERSIONS
         """
     } else if (meta.single_end) {
         """
@@ -72,10 +69,6 @@ process FASTP_LEGACY {
             $args \\
             2>| >(tee ${prefix}.fastp.log >&2)
 
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            fastp: \$(fastp --version 2>&1 | sed -e "s/fastp //g")
-        END_VERSIONS
         """
     } else {
         def merge_fastq = save_merged ? "-m --merged_out ${prefix}.merged.fastq.gz" : ''
@@ -96,10 +89,6 @@ process FASTP_LEGACY {
             $args \\
             2>| >(tee ${prefix}.fastp.log >&2)
 
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            fastp: \$(fastp --version 2>&1 | sed -e "s/fastp //g")
-        END_VERSIONS
         """
     }
 
@@ -116,9 +105,5 @@ process FASTP_LEGACY {
     touch "${prefix}.fastp.json"
     touch "${prefix}.fastp.html"
     touch "${prefix}.fastp.log"
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        fastp: stub
-    END_VERSIONS
     """
 }

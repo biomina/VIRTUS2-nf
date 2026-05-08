@@ -1,0 +1,82 @@
+name: virtus_aggregate
+description: |
+  Aggregate per-sample VIRTUS output TSVs across a cohort, build rate_hit and
+  coverage matrices, and (when two sample groups are defined) run Mann-Whitney U
+  tests with Benjamini-Hochberg FDR correction. Produces summary.csv and an
+  optional scatter-map PDF visualisation via the aggregate_virtus.py script.
+keywords:
+  - virus
+  - aggregation
+  - summary
+  - statistics
+  - visualisation
+  - pandas
+  - scipy
+tools:
+  - python:
+      description: Python programming language.
+      homepage: https://www.python.org/
+      documentation: https://docs.python.org/
+      licence: ["PSF-2.0"]
+      identifier: ""
+  - pandas:
+      description: Flexible and powerful data analysis / manipulation library for Python.
+      homepage: https://pandas.pydata.org/
+      documentation: https://pandas.pydata.org/docs/
+      doi: 10.25080/Majora-92bf1922-00a
+      licence: ["BSD-3-Clause"]
+      identifier: ""
+  - scipy:
+      description: Fundamental algorithms for scientific computing in Python.
+      homepage: https://scipy.org/
+      documentation: https://docs.scipy.org/
+      doi: 10.1038/s41592-019-0686-2
+      licence: ["BSD-3-Clause"]
+      identifier: ""
+  - seaborn:
+      description: Statistical data visualisation library for Python.
+      homepage: https://seaborn.pydata.org/
+      documentation: https://seaborn.pydata.org/
+      licence: ["BSD-3-Clause"]
+      identifier: ""
+  - matplotlib:
+      description: Comprehensive library for creating static, animated, and interactive
+        visualisations in Python.
+      homepage: https://matplotlib.org/
+      documentation: https://matplotlib.org/stable/contents.html
+      licence: ["PSF-2.0"]
+      identifier: ""
+
+input:
+  - tsvs:
+      type: file
+      description: Collected list of per-sample VIRTUS output TSV files.
+      pattern: "*.tsv"
+      ontologies: []
+  - metadata:
+      type: file
+      description: Samplesheet CSV with columns sample, fastq_1, fastq_2, group.
+      pattern: "*.csv"
+      ontologies: []
+
+output:
+  summary:
+    - "summary.csv":
+        description: Cohort-level summary CSV with rate_hit and coverage per virus per sample,
+          including optional Mann-Whitney U / BH-FDR statistics.
+        pattern: "summary.csv"
+        ontologies: []
+  plot:
+    - "scattermap.pdf":
+        description: Scatter-map PDF visualising virus detection across samples (optional).
+        pattern: "scattermap.pdf"
+        ontologies: []
+  versions:
+    - versions:
+        type: channel
+        description: Channel emitting software version information via the Nextflow `versions` topic.
+
+authors:
+  - "@biomina"
+maintainers:
+  - "@biomina"

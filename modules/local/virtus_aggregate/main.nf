@@ -4,8 +4,8 @@
 process VIRTUS_AGGREGATE {
     label 'process_single'
 
-    conda 'conda-forge::pandas conda-forge::scipy conda-forge::seaborn conda-forge::matplotlib'
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    conda "${moduleDir}/environment.yml"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'docker://community.wave.seqera.io/library/matplotlib_numpy_pandas_python_pruned:e8acf970170a6bce' :
         'community.wave.seqera.io/library/matplotlib_numpy_pandas_python_pruned:e8acf970170a6bce' }"
 
@@ -14,9 +14,12 @@ process VIRTUS_AGGREGATE {
     path metadata      // samplesheet CSV (sample, fastq1, fastq2, group)
 
     output:
-    path 'summary.csv',   emit: summary
-    path 'scattermap.pdf', emit: plot,    optional: true
-    path 'versions.yml',   emit: versions
+    path 'summary.csv',                                                                                                                   emit: summary
+    path 'scattermap.pdf',                                                                                            optional: true,    emit: plot
+    tuple val("${task.process}"), val('python'),  eval('python --version 2>&1 | sed "s/Python //"'),                  emit: versions_python,  topic: versions
+    tuple val("${task.process}"), val('pandas'),  eval('python -c "import pandas; print(pandas.__version__)"'),       emit: versions_pandas,  topic: versions
+    tuple val("${task.process}"), val('scipy'),   eval('python -c "import scipy; print(scipy.__version__)"'),         emit: versions_scipy,   topic: versions
+    tuple val("${task.process}"), val('seaborn'), eval('python -c "import seaborn; print(seaborn.__version__)"'),     emit: versions_seaborn, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -29,23 +32,11 @@ process VIRTUS_AGGREGATE {
         --th_cov ${params.th_cov} \\
         --th_rate ${params.th_rate} \\
         --figsize ${params.figsize}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version 2>&1 | sed 's/Python //')
-        pandas: \$(python -c "import pandas; print(pandas.__version__)")
-        scipy:  \$(python -c "import scipy; print(scipy.__version__)")
-        seaborn: \$(python -c "import seaborn; print(seaborn.__version__)")
-    END_VERSIONS
     """
     stub:
     """
     touch summary.csv
     touch scattermap.pdf
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: stub
-    END_VERSIONS
     """
 
 }

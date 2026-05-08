@@ -4,8 +4,8 @@ process MK_SUMMARY_VIRUS_COUNT {
     tag "$meta.id"
     label 'process_single'
 
-    conda 'conda-forge::pandas=1.3.5'
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    conda "${moduleDir}/environment.yml"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'docker://yyasumizu/mk_summary_virus_count:2.0' :
         'yyasumizu/mk_summary_virus_count:2.0' }"
 
@@ -15,8 +15,9 @@ process MK_SUMMARY_VIRUS_COUNT {
     val   layout                        // 'PE' or 'SE'
 
     output:
-    tuple val(meta), path('*.tsv'), emit: output
-    path 'versions.yml',            emit: versions
+    tuple val(meta), path('*.tsv'),                                                                                                       emit: output
+    tuple val("${task.process}"), val('python'), eval('python --version 2>&1 | sed "s/Python //"'),              emit: versions_python, topic: versions
+    tuple val("${task.process}"), val('pandas'), eval('python -c "import pandas; print(pandas.__version__)"'),  emit: versions_pandas, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -29,21 +30,11 @@ process MK_SUMMARY_VIRUS_COUNT {
         ${layout} \\
         ${coverage} \\
         ${prefix}.${params.filename_output}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version 2>&1 | sed 's/Python //')
-        pandas: \$(python -c "import pandas; print(pandas.__version__)")
-    END_VERSIONS
     """
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.${params.filename_output}
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: stub
-    END_VERSIONS
     """
 
 }

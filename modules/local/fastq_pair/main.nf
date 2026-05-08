@@ -4,8 +4,8 @@ process FASTQ_PAIR {
     tag "$meta.id"
     label 'process_low'
 
-    conda 'bioconda::fastq-pair=1.0'
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    conda "${moduleDir}/environment.yml"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/fastq-pair:1.0--he1b5a44_1' :
         'quay.io/biocontainers/fastq-pair:1.0--he1b5a44_1' }"
 
@@ -13,8 +13,8 @@ process FASTQ_PAIR {
     tuple val(meta), path(reads)   // [fq1, fq2]
 
     output:
-    tuple val(meta), path('*.paired.fq.gz'), emit: reads
-    path 'versions.yml',                     emit: versions
+    tuple val(meta), path('*.paired.fq.gz'),                                                                                              emit: reads
+    tuple val("${task.process}"), val('fastq-pair'), eval("fastq_pair -v 2>&1 | head -1 || echo 'unknown'"), emit: versions_fastq_pair, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -30,20 +30,11 @@ process FASTQ_PAIR {
     fastq_pair ${r1u} ${r2u}
     gzip ${r1u}.paired.fq
     gzip ${r2u}.paired.fq
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        fastq-pair: \$(fastq_pair -v 2>&1 | head -1 || echo 'unknown')
-    END_VERSIONS
     """
     stub:
     """
     touch ${reads[0]}.paired.fq.gz
     touch ${reads[1]}.paired.fq.gz
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        fastq-pair: stub
-    END_VERSIONS
     """
 
 }

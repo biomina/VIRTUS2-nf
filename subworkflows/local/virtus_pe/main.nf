@@ -38,7 +38,9 @@ workflow VIRTUS_PE {
             false, false, false
         )
         ch_fastp_reads = FASTP_LEGACY.out.reads
-        ch_versions = ch_versions.mix(FASTP_LEGACY.out.versions.first())
+        ch_versions = ch_versions.mix(
+            FASTP_LEGACY.out.versions_fastp.map { process, tool, ver -> [ process, ver ] }
+        )
     } else {
         FASTP (
             ch_reads.map { meta, reads -> [ meta, reads, [] ] },
@@ -60,14 +62,18 @@ workflow VIRTUS_PE {
 
     // Step 3 — Extract unmapped reads (remove multi-mappers via custom script)
     SAMTOOLS_VIEW ( STAR_ALIGN_HUMAN.out.bam_sorted_aligned )
-    ch_versions = ch_versions.mix(SAMTOOLS_VIEW.out.versions.first())
+    ch_versions = ch_versions.mix(
+        SAMTOOLS_VIEW.out.versions_samtools.map { process, tool, ver -> [ process, ver ] }
+    )
 
     // Step 4 — Convert unmapped BAM → paired FASTQ
     // Branch on bam_to_fastq_tool param: 'bedtools' for exact CWL replication, 'samtools' (default) for modern approach
     ch_bam2fq_reads = Channel.empty()
     if (params.bam_to_fastq_tool == 'bedtools') {
         BEDTOOLS_BAMTOFASTQ ( SAMTOOLS_VIEW.out.bam )
-        ch_versions = ch_versions.mix(BEDTOOLS_BAMTOFASTQ.out.versions.first())
+        ch_versions = ch_versions.mix(
+            BEDTOOLS_BAMTOFASTQ.out.versions_bedtools.map { process, tool, ver -> [ process, ver ] }
+        )
         ch_bam2fq_reads = BEDTOOLS_BAMTOFASTQ.out.reads
     } else {
         SAMTOOLS_FASTQ ( SAMTOOLS_VIEW.out.bam, false )
@@ -89,7 +95,9 @@ workflow VIRTUS_PE {
     }
     KZ_FILTER_R1 ( ch_r1 )
     KZ_FILTER_R2 ( ch_r2 )
-    ch_versions = ch_versions.mix(KZ_FILTER_R1.out.versions.first())
+    ch_versions = ch_versions.mix(
+        KZ_FILTER_R1.out.versions_komplexity.map { process, tool, ver -> [ process, ver ] }
+    )
 
     // Re-combine filtered R1 + R2 keyed by original sample id
     ch_kz_paired = KZ_FILTER_R1.out.reads
@@ -106,7 +114,9 @@ workflow VIRTUS_PE {
 
     // Step 7 — Re-pair reads after independent filtering
     FASTQ_PAIR ( ch_kz_paired )
-    ch_versions = ch_versions.mix(FASTQ_PAIR.out.versions.first())
+    ch_versions = ch_versions.mix(
+        FASTQ_PAIR.out.versions_fastq_pair.map { process, tool, ver -> [ process, ver ] }
+    )
 
     // Step 8 — Align to viral reference
     STAR_ALIGN_VIRUS (
@@ -118,7 +128,9 @@ workflow VIRTUS_PE {
 
     // Step 9 — Remove poly-X reads from viral BAM
     BAM_FILTER_POLYX ( STAR_ALIGN_VIRUS.out.bam_sorted_aligned )
-    ch_versions = ch_versions.mix(BAM_FILTER_POLYX.out.versions.first())
+    ch_versions = ch_versions.mix(
+        BAM_FILTER_POLYX.out.versions_samtools.map { process, tool, ver -> [ process, ver ] }
+    )
 
     // Step 10 — Index filtered viral BAM
     SAMTOOLS_INDEX ( BAM_FILTER_POLYX.out.bam )
@@ -140,7 +152,9 @@ workflow VIRTUS_PE {
         ch_log_cov.map { meta, log, cov -> [ meta, cov ] },
         'PE'
     )
-    ch_versions = ch_versions.mix(MK_SUMMARY_VIRUS_COUNT.out.versions.first())
+    ch_versions = ch_versions.mix(
+        MK_SUMMARY_VIRUS_COUNT.out.versions_python.map { process, tool, ver -> [ process, ver ] }
+    )
 
     emit:
     summary      = MK_SUMMARY_VIRUS_COUNT.out.output  // [ meta, *.tsv ]

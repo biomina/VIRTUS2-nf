@@ -1,0 +1,72 @@
+name: mk_summary_virus_count
+description: |
+  Generate a per-sample virus detection summary table (TSV) from STAR alignment
+  statistics and samtools coverage output. Uses mk_summary_virus_count.py to
+  compute the rate_hit metric (virus-mapped reads / total uniquely-mapped human
+  reads) for each detected virus.
+keywords:
+  - virus
+  - summary
+  - coverage
+  - STAR
+  - samtools
+  - quantification
+tools:
+  - python:
+      description: Python programming language.
+      homepage: https://www.python.org/
+      documentation: https://docs.python.org/
+      licence: ["PSF-2.0"]
+      identifier: ""
+  - pandas:
+      description: Flexible and powerful data analysis / manipulation library for Python.
+      homepage: https://pandas.pydata.org/
+      documentation: https://pandas.pydata.org/docs/
+      doi: 10.25080/Majora-92bf1922-00a
+      licence: ["BSD-3-Clause"]
+      identifier: ""
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information.
+          e.g. [ id:'test', single_end:false ]
+    - log_final:
+        description: STAR Log.final.out file for the human alignment (used to extract
+          total uniquely-mapped reads for the denominator).
+        pattern: "*Log.final.out"
+        ontologies: []
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information.
+          e.g. [ id:'test', single_end:false ]
+    - coverage:
+        description: samtools coverage output for the filtered viral BAM.
+        pattern: "*.txt"
+        ontologies: []
+  - layout:
+      type: string
+      description: Sequencing layout, either 'PE' or 'SE'.
+
+output:
+  output:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information.
+            e.g. [ id:'test', single_end:false ]
+      - "*.tsv":
+          description: TSV table with virus detection statistics (virus, rate_hit, coverage, etc.).
+          pattern: "*.tsv"
+          ontologies: []
+  versions:
+    - versions:
+        type: channel
+        description: Channel emitting software version information via the Nextflow `versions` topic.
+
+authors:
+  - "@biomina"
+maintainers:
+  - "@biomina"

@@ -1,0 +1,10 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json
+# Note: this module uses the custom Docker image yyasumizu/mk_summary_virus_count:2.0
+# which bundles the mk_summary_virus_count.py script.
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  # renovate: datasource=conda depName=conda-forge/pandas
+  - conda-forge::pandas=1.3.5

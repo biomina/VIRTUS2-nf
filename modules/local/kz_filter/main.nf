@@ -5,8 +5,8 @@ process KZ_FILTER {
     tag "$meta.id"
     label 'process_low'
 
-    conda 'eclarke::komplexity=0.3.6'
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    conda "${moduleDir}/environment.yml"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
         'docker://quay.io/andvon/komplexity:0.3.6' :
         'quay.io/andvon/komplexity:0.3.6' }"
 
@@ -14,8 +14,8 @@ process KZ_FILTER {
     tuple val(meta), path(fastq)
 
     output:
-    tuple val(meta), path('*.kz.fq.gz'), emit: reads
-    path 'versions.yml',                 emit: versions
+    tuple val(meta), path('*.kz.fq.gz'),                                                                                                       emit: reads
+    tuple val("${task.process}"), val('komplexity'), eval("kz --version 2>&1 | head -1 || echo 'unknown'"), emit: versions_komplexity, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -30,20 +30,11 @@ process KZ_FILTER {
             --filter \\
             --threshold ${threshold} \\
         | gzip -c > ${prefix}.kz.fq.gz
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        komplexity: \$(kz --version 2>&1 | head -1 || echo 'unknown')
-    END_VERSIONS
     """
     stub:
     def prefix = task.ext.prefix ?: "${fastq.baseName}"
     """
     touch ${prefix}.kz.fq.gz
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        komplexity: stub
-    END_VERSIONS
     """
 
 }
